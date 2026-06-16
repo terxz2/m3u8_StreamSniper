@@ -23,7 +23,7 @@ try:
 except Exception:
     _HAS_WDM = False
 
-DEFAULT_URL = "https://nove.tv/live-streaming-nove?view=upcoming#nove"
+DEFAULT_URL = "https://play.discoveryplus.com/channel/watch/f4a4e9af-8af5-54a1-96b8-281b59b00742/366a7d01-78f8-568b-a429-54dcc5f6a1d6?referringSite=dotcom"
 mpd_RE = re.compile(r'https?://[^\'"\s>]+\.mpd[^\'"\s>]*', flags=re.IGNORECASE)
 
 def now():

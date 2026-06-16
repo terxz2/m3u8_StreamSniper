@@ -6,7 +6,7 @@ on:
       url:
         description: "The URL to scrape for m3u8 links (override default)"
         required: true
-        default: "https://nove.tv/live-streaming-nove?view=upcoming#nove"
+        default: "https://play.discoveryplus.com/channel/watch/f4a4e9af-8af5-54a1-96b8-281b59b00742/366a7d01-78f8-568b-a429-54dcc5f6a1d6?referringSite=dotcom"
       max_wait:
         description: "Max seconds the script should wait for m3u8 (optional)"
         required: false

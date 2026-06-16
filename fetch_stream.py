@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # fetch_stream_optimized.py
-# Optimized Selenium + CDP .m3u8 capture for CI (GitHub Actions)
+# Optimized Selenium + CDP .mpd capture for CI (GitHub Actions)
 # - set TARGET_URL env or pass as argv
 # - optional env CHROMEDRIVER_PATH to skip driver download
 # - configurable MAX_WAIT_SECONDS and STARTUP_TIMEOUT via env
@@ -24,15 +24,15 @@ except Exception:
     _HAS_WDM = False
 
 DEFAULT_URL = "https://nove.tv/live-streaming-nove?view=upcoming#nove"
-M3U8_RE = re.compile(r'https?://[^\'"\s>]+\.m3u8[^\'"\s>]*', flags=re.IGNORECASE)
+mpd_RE = re.compile(r'https?://[^\'"\s>]+\.mpd[^\'"\s>]*', flags=re.IGNORECASE)
 
 def now():
     return time.strftime("%H:%M:%S")
 
-def extract_m3u8_from_text(text):
+def extract_mpd_from_text(text):
     if not text:
         return []
-    return M3U8_RE.findall(text)
+    return mpd_RE.findall(text)
 
 def find_chromedriver_from_env_or_path():
     # 1) explicit env override
@@ -170,9 +170,9 @@ def main():
                 # handle requests (fast)
                 if method == "Network.requestWillBeSent":
                     url = params.get("request", {}).get("url", "") or ""
-                    if ".m3u8" in url.lower() and url not in found:
+                    if ".mpd" in url.lower() and url not in found:
                         found.add(url)
-                        print(f"{now()} \x1b[32mFound .m3u8 URL (request):\x1b[0m {url}")
+                        print(f"{now()} \x1b[32mFound .mpd URL (request):\x1b[0m {url}")
 
                 # handle responses
                 elif method == "Network.responseReceived":
@@ -180,13 +180,13 @@ def main():
                     url = resp.get("url", "") or ""
                     mime = (resp.get("mimeType") or "").lower()
 
-                    # quick wins: url contains .m3u8
-                    if ".m3u8" in url.lower() and url not in found:
+                    # quick wins: url contains .mpd
+                    if ".mpd" in url.lower() and url not in found:
                         found.add(url)
-                        print(f"{now()} \x1b[32mFound .m3u8 URL (response):\x1b[0m {url}")
+                        print(f"{now()} \x1b[32mFound .mpd URL (response):\x1b[0m {url}")
                         # continue - no body needed
 
-                    # only fetch body for likely small textual responses OR if url suggests m3u8 inside body
+                    # only fetch body for likely small textual responses OR if url suggests mpd inside body
                     should_fetch_body = False
                     if url and any(url.lower().endswith(x) for x in ('.json', '.js', '.txt', '.html')):
                         should_fetch_body = True
@@ -202,11 +202,11 @@ def main():
                             try:
                                 body_info = driver.execute_cdp_cmd("Network.getResponseBody", {"requestId": request_id})
                                 body_text = body_info.get("body", "") if isinstance(body_info, dict) else ""
-                                if body_text and ".m3u8" in body_text:
-                                    for m in extract_m3u8_from_text(body_text):
+                                if body_text and ".mpd" in body_text:
+                                    for m in extract_mpd_from_text(body_text):
                                         if m not in found:
                                             found.add(m)
-                                            print(f"{now()} \x1b[32mFound .m3u8 URL (in body):\x1b[0m {m}")
+                                            print(f"{now()} \x1b[32mFound .mpd URL (in body):\x1b[0m {m}")
                             except Exception:
                                 # ignore missing body or failures
                                 pass
@@ -219,12 +219,12 @@ def main():
 
         # Final output
         if found:
-            print(f"{now()} \x1b[32m✅ Total .m3u8 URLs found: {len(found)}\x1b[0m")
+            print(f"{now()} \x1b[32m✅ Total .mpd URLs found: {len(found)}\x1b[0m")
             for u in sorted(found):
                 print(u)
             sys.exit(0)
         else:
-            print(f"{now()} \x1b[33m⚠️ No .m3u8 URL found within {MAX_WAIT}s.\x1b[0m")
+            print(f"{now()} \x1b[33m⚠️ No .mpd URL found within {MAX_WAIT}s.\x1b[0m")
             sys.exit(2)
 
     finally:
